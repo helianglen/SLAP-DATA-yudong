@@ -16,7 +16,7 @@ filesRad = dir('RAD*.slapbin');
 %cd(script_path);
 
 for i = 1:length(filesRad)
-    SLAP_ingest_radiometer(fullfile(data_path, filesRad(i).name), 'fb')
+    SLAP_ingest_radiometer(fullfile(data_path, filesRad(i).name), 'FB')
 end
 
 %cd(data_path);
@@ -27,12 +27,5 @@ end
 %    SLAP_ingest_radar(fullfile(data_path, filesRad(i).name))
 %end
 
-beep
-pause(1)
-beep
-pause(1)
-beep
-pause(1)
-beep
-pause(1)
-beep
+quit
+
