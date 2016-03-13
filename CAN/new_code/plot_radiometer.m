@@ -192,18 +192,18 @@ load daq_all
 %TempLNAH is the IMA H Amplifier, TempLNAV is the IMA V amplifier, 
 %TempAntennaH is the microstrip H 9-way and TempAntennaV is the microstrip V 9-way
 
-timeDaq = daq_all{:,1};
-IMA_H_SWITCH = daq_all{:,14};
-IMA_V_SWITCH = daq_all{:,13};
-TempDiplexerH = daq_all{:, 6};
-TempDiplexerV = daq_all{:, 7};
-TempLNAH = daq_all{:,21};
-TempLNAV = daq_all{:,10};
-TempAntennaH = daq_all{:,4};
-TempAntennaV = daq_all{:,5};
-
 [~, daq_sort_i] = sort(timeDaq); 
 daq_sort_i = daq_sort_i([diff(timeDaq(daq_sort_i)) ~= 0; true]);
+
+new_timeDaq = timeDaq(daq_sort_i) 
+new_IMA_H_SWITCH = IMA_H_SWITCH(daq_sort_i);
+new_IMA_V_SWITCH = IMA_V_SWITCH(daq_sort_i);
+new_TempDiplexerH = TempDiplexerH(daq_sort_i);
+new_TempDiplexerV = TempDiplexerV(daq_sort_i);
+new_TempLNAH = TempLNAH(daq_sort_i);
+new_TempLNAV = TempLNAV(daq_sort_i);
+new_TempAntennaH = TempAntennaH(daq_sort_i);
+new_TempAntennaV = TempAntennaV(daq_sort_i); 
 
 
 for i = 1:length(filesRad2)
@@ -211,6 +211,7 @@ for i = 1:length(filesRad2)
     clear noscan
         load(filesRad2(i).name)
 %         azavg = azavg + hdgavg;
+        filesRad2(i).name
         timestr = filesRad2(i).name(19:22);
         
         %% Only plot data on fore or aft half of azimuthal scans. 
@@ -365,10 +366,10 @@ for i = 1:length(filesRad2)
         'here 1.5' 
         %keyboard
         
-        temp_dip_interp    = interp1(timeDaq(daq_sort_i),TempDiplexerH(daq_sort_i), time_half_scan);
-        temp_lna_interp    = interp1(timeDaq(daq_sort_i),TempLNAH(daq_sort_i), time_half_scan);
-        temp_ant_interp    = interp1(timeDaq(daq_sort_i),TempAntennaH(daq_sort_i), time_half_scan);
-        temp_switch_interp = interp1(timeDaq(daq_sort_i),IMA_H_SWITCH(daq_sort_i), time_half_scan);
+        temp_dip_interp    = interp1(new_timeDaq,new_TempDiplexerH, time_half_scan);
+        temp_lna_interp    = interp1(new_timeDaq,new_TempLNAH, time_half_scan);
+        temp_ant_interp    = interp1(new_timeDaq,new_TempAntennaH, time_half_scan);
+        temp_switch_interp = interp1(new_timeDaq,new_IMA_H_SWITCH, time_half_scan);
         
         temp_dip_interp(isnan(temp_dip_interp)) = nanmean(temp_dip_interp);
         temp_lna_interp(isnan(temp_lna_interp)) = nanmean(temp_lna_interp);
@@ -391,11 +392,14 @@ for i = 1:length(filesRad2)
         Tb = Tb*(1 - 0.01) + tb_otherpol*0.01;
         
         %YDT skip the following corrections 
-        temp_dip_interp    = interp1(timeDaq(daq_sort_i),TempDiplexerV(daq_sort_i), time_half_scan);
-        temp_lna_interp    = interp1(timeDaq(daq_sort_i),TempLNAV(daq_sort_i), time_half_scan);
-        temp_ant_interp    = interp1(timeDaq(daq_sort_i),TempAntennaV(daq_sort_i), time_half_scan);
-        temp_switch_interp = interp1(timeDaq(daq_sort_i),IMA_V_SWITCH(daq_sort_i), time_half_scan);
+        temp_dip_interp    = interp1(new_timeDaq,new_TempDiplexerV, time_half_scan);
+        temp_lna_interp    = interp1(new_timeDaq,new_TempLNAV, time_half_scan);
+        temp_ant_interp    = interp1(new_timeDaq,new_TempAntennaV, time_half_scan);
+        temp_switch_interp = interp1(new_timeDaq,new_IMA_V_SWITCH, time_half_scan);
         
+        'here 2.5' 
+        %keyboard
+
         temp_dip_interp(isnan(temp_dip_interp)) = nanmean(temp_dip_interp);
         temp_lna_interp(isnan(temp_lna_interp)) = nanmean(temp_lna_interp);
         temp_ant_interp(isnan(temp_ant_interp)) = nanmean(temp_ant_interp);
@@ -424,10 +428,8 @@ for i = 1:length(filesRad2)
         hdg_total = [hdg_total; hdg_half_scan ];
         az_total = [az_total; az_wo_hdg];
         
-        if 0 % YDT
         temphswitch = [temphswitch; temp_switch_interph];
         tempvswitch = [tempvswitch; temp_switch_interpv];
-        end 
         
         'here 4' 
         %keyboard
@@ -442,7 +444,6 @@ for i = 1:length(filesRad2)
             clay_total = [clay_total; clay];
         end
         
-end
 
 % only write tabular data if the flag is set
 if  data_accum
@@ -517,7 +518,7 @@ if soil
     Tb = SM;    
 end
 
-if GoogleEarth
+ if GoogleEarth
     % if the variable NEorSW exists, only plot NE or SW facing flight lines
     % based on flag (NE = 1, SW = 0)
     if exist('NEorSW')
@@ -699,6 +700,7 @@ if GoogleEarth
 end
 
 
+
+end
+
 quit
-
-

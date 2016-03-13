@@ -22,7 +22,7 @@ end
 enc_sort_i = enc_sort_i([diff(enc_t(enc_sort_i)) ~= 0; true]);
 
 timeMotAll = enc_t(enc_sort_i);  
-azAll = mod(enc_az(enc_sort_i) -  enc_az_index(enc_sort_i, 65535);
+azAll = mod( enc_az(enc_sort_i) -  enc_az_index(enc_sort_i), 65535);
 azAll = azAll*360/65536; 
 
 % the azimuth scan angles were measured pos CCW from due North so we

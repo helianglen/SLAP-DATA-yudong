@@ -2,7 +2,7 @@
 clear
 
 %sometimes there is block of timetags that are bad
-%YDT motskip = 16000
+motskip = 1  % not an issue anymore
 
 filesRad = dir('RAD*FB_m2data.mat');
 
