@@ -47,24 +47,16 @@ datetick('x', 15)
 
 print('ts.png', '-dpng');  
 
-h2sky=h2antAll(h2antAll > skyLow & h2antAll < skyHigh); 
-v2sky=v2antAll(v2antAll > skyLow & v2antAll < skyHigh); 
-
 h2foam=h2antAll(h2antAll > foamLow & h2antAll < foamHigh); 
 v2foam=v2antAll(v2antAll > foamLow & v2antAll < foamHigh); 
 
 disp('mean(v2foam) mean(h2foam) mean(v2sky) mean(h2sky) std(v2foam) std(h2foam) std(v2sky) std(h2sky)') 
 disp('----------------- before outlier removal ---------------------------------------------------------------')
-fprintf('%10.0f, ', [mean(v2foam), mean(h2foam), mean(v2sky), mean(h2sky), ...
-       std(v2foam),  std(h2foam),  std(v2sky),  std(h2sky)]); 
+fprintf('%10.0f, ', [mean(v2foam), mean(h2foam), NaN, NaN, ...
+       std(v2foam),  std(h2foam),  NaN,  NaN]); 
 fprintf('\n');  
 
 %new ranges 
-new_h2skyLow = mean(h2sky) - 3.0 * std(h2sky);  
-new_h2skyHigh = mean(h2sky) + 3.0 * std(h2sky);  
-
-new_v2skyLow = mean(v2sky) - 3.0 * std(v2sky); 
-new_v2skyHigh = mean(v2sky) + 3.0 * std(v2sky); 
 
 new_h2foamLow = mean(h2foam) - 3.0 * std(h2foam);
 new_h2foamHigh = mean(h2foam) + 3.0 * std(h2foam);  
@@ -72,15 +64,12 @@ new_h2foamHigh = mean(h2foam) + 3.0 * std(h2foam);
 new_v2foamLow = mean(v2foam) - 3.0 * std(v2foam);
 new_v2foamHigh = mean(v2foam) + 3.0 * std(v2foam);
 
-new_h2sky=h2antAll(h2antAll > new_h2skyLow & h2antAll < new_h2skyHigh); 
-new_v2sky=v2antAll(v2antAll > new_v2skyLow & v2antAll < new_v2skyHigh); 
-
 new_h2foam=h2antAll(h2antAll > new_h2foamLow & h2antAll < new_h2foamHigh); 
 new_v2foam=v2antAll(v2antAll > new_v2foamLow & v2antAll < new_v2foamHigh); 
 
 disp('----------------- after outlier removal ---------------------------------------------------------------')
-fprintf('%10.0f, ', [mean(new_v2foam), mean(new_h2foam), mean(new_v2sky), mean(new_h2sky), ...
-       std(new_v2foam),  std(new_h2foam),  std(new_v2sky),  std(new_h2sky)]); 
+fprintf('%10.0f, ', [mean(new_v2foam), mean(new_h2foam), NaN, NaN, ...
+       std(new_v2foam),  std(new_h2foam),  NaN,  NaN]); 
 fprintf('\n');  
 
 
