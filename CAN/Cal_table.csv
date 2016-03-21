@@ -1,0 +1,6 @@
+# Comment: if sky cal is not available for a given day, use sky data for 2015-10-05. All units are count numbers except temperature
+Date,    	    foam_temp(c), mean(v2foam) mean(h2foam) mean(v2sky) mean(h2sky) std(v2foam) std(h2foam) std(v2sky) std(h2sky)
+2015-10-05 14:21:14,    18,         3440411,    3633832,    2341245,    2548245,      33777,      35625,      23039,      24992
+2015-10-30 12:03:46,    2.2,        3447600,    3682521,        NaN,        NaN,      34706,      36662,        NaN,        NaN
+2015-11-06 11:48:23,    9.5,        3479281,    3544817,        NaN,        NaN,      35271,      36598,        NaN,        NaN
+
