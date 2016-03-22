@@ -20,6 +20,9 @@ xlabel('Temperature (K)')
 ylabel('Count')
 hold on
 plot(x, fitv(1)*x+fitv(2), 'b', 'Linewidth', 2); 
+annotation('textbox', [0.4 0.3 0.3, 0.1], 'String', strcat('slope=',num2str(fitv(1), '%10.4f\n'), ...
+                                                           ' intpt=',num2str(fitv(2), '%10.2f') ), ...
+                                                           'FitBoxToText', 'off', 'Color', 'blue' )
 
 sh=scatter(x, yh, 100) 
 sh.LineWidth=1.8; 
@@ -27,6 +30,9 @@ sh.MarkerEdgeColor = [0.2 0.6 0.2];
 %sh.MarkerFaceColor = 'g';
 hold on
 plot(x, fith(1)*x+fith(2), 'g', 'Linewidth', 2); 
+annotation('textbox', [0.3 0.7 0.3, 0.1], 'String', strcat('slope=',num2str(fith(1), '%10.4f\n'), ...
+                                                           ' intpt=',num2str(fith(2), '%10.2f') ), ... 
+                                                           'FitBoxToText', 'off', 'Color', [0.2 0.6 0.2] )
 
 print('scatter_caldata', '-dpng');
 
