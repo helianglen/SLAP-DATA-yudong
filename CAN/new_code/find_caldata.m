@@ -8,6 +8,9 @@ clear
 % time-range  of usable cal data: if foambox temperature read at t0, use radiometer data of t0+/-cal_dt 
 cal_dt = 5 / (24*60);   % 5 minutes
 
+%lower limit: sometimes the time range went berserk 
+time0 = datenum('2015-Oct-1 00:00:00', 'yyyy-mmm-dd HH:MM:SS')  
+
 % control plot range 
 foamLow = 3e6; 
 foamHigh = 4e6; 
@@ -26,7 +29,6 @@ h2antAll = [];
 v2antAll = [];
 
 for i = files_to_process
-
     % time data from FB.mat and h2ant and v2ant from FB_m2data.mat 
     load(filesRad(i).name)                       % RADTELEM_20151005T145000_FB_m2data.mat
  
@@ -35,13 +37,19 @@ for i = files_to_process
     v2antAll = [v2antAll; v2ant]; 
 
 end
+  
+tgood  = find(timeAll > time0); 
+timeAll = timeAll(tgood);  
+h2antAll = h2antAll(tgood);  
+v2antAll = v2antAll(tgood);  
 
 for j = 1:length(cal_time) 
-  t_index = cal_time(j); 
+  t_index = cal_time(j);  
   if (t_index < min(timeAll) | t_index > max(timeAll) )  % not this time 
      continue 
   end 
   % within time range
+  strcat( {datestr(min(timeAll),'mm-dd HH:MM '), datestr(t_index, 'mm-dd HH:MM '), datestr(max(timeAll), 'mm-dd HH:MM ') }) 
   cal_ind = find( timeAll > (t_index - cal_dt) & timeAll < (t_index + cal_dt) ) ; 
   h2foam=h2antAll(cal_ind);  
   v2foam=v2antAll(cal_ind);  
