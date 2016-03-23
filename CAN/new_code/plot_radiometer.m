@@ -81,8 +81,8 @@ end
 % specify max and min values for color bar range
 if ~soil
     %YDT minBin=200;
-    minBin=80;
-    maxBin=200;
+    minBin=150;
+    maxBin=250;
 else 
     minBin=0;
     maxBin=maxSM;
@@ -206,6 +206,7 @@ new_TempAntennaH = TempAntennaH(daq_sort_i);
 new_TempAntennaV = TempAntennaV(daq_sort_i); 
 
 
+% =======================================================
 for i = 1:length(filesRad2)
     i
     clear noscan
@@ -391,7 +392,6 @@ for i = 1:length(filesRad2)
         tb_otherpol = tbh_half_scan;
         Tb = Tb*(1 - 0.01) + tb_otherpol*0.01;
         
-        %YDT skip the following corrections 
         temp_dip_interp    = interp1(new_timeDaq,new_TempDiplexerV, time_half_scan);
         temp_lna_interp    = interp1(new_timeDaq,new_TempLNAV, time_half_scan);
         temp_ant_interp    = interp1(new_timeDaq,new_TempAntennaV, time_half_scan);
@@ -444,6 +444,8 @@ for i = 1:length(filesRad2)
             clay_total = [clay_total; clay];
         end
         
+end   
+% =======================================================
 
 % only write tabular data if the flag is set
 if  data_accum
@@ -517,6 +519,8 @@ if soil
     end
     Tb = SM;    
 end
+
+
 
  if GoogleEarth
     % if the variable NEorSW exists, only plot NE or SW facing flight lines
@@ -701,6 +705,5 @@ end
 
 
 
-end
 
 quit

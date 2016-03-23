@@ -73,10 +73,15 @@ v2sky_ind= find ( v2antAll > skyLow & v2antAll < skyHigh );
 v2sky=v2antAll( v2sky_ind ); 
 v2sky_time=timeAll(v2sky_ind) ; 
 
-h2foam=h2antAll(h2antAll > foamLow & h2antAll < foamHigh); 
-v2foam=v2antAll(v2antAll > foamLow & v2antAll < foamHigh); 
+h2foam_ind = find(h2antAll > foamLow & h2antAll < foamHigh); 
+h2foam=h2antAll(h2foam_ind); 
+h2foam_time=timeAll(h2foam_ind); 
 
-% These is a jump in time near the end 
+v2foam_ind = find(v2antAll > foamLow & v2antAll < foamHigh); 
+v2foam=v2antAll(v2foam_ind); 
+v2foam_time=timeAll(v2foam_ind); 
+
+% -------- sky data ----------------------------- 
 
 figure
 subplot(3, 2, 1)
@@ -112,7 +117,7 @@ subplot(3, 2, 5)
 [vf, vP1] = fft_spectra(v2sky, deltaT); 
 plot(vf(2:end),vP1(2:end))
 axis([0 200 0 0.5e3]); 
-title('Single-Sided Amplitude Spectrum of V-pol')
+title('Single-Sided Amplitude Spectrum, V-pol')
 xlabel('f (Hz)')
 ylabel('|P1(f)|')
 
@@ -120,12 +125,61 @@ subplot(3, 2, 6)
 [hf, hP1] = fft_spectra(h2sky, deltaT);
 plot(hf(2:end),hP1(2:end))
 axis([0 200 0 0.5e3]); 
-title('Single-Sided Amplitude Spectrum of H-pol')
+title('Single-Sided Amplitude Spectrum, H-pol')
 xlabel('f (Hz)')
 ylabel('|P1(f)|')
 
 print('sky_ts_hist_fft.png', '-dpng');
 
+% -------- foambox data ----------------------------- 
+
+figure
+subplot(3, 2, 1)
+%plot(v2foam_time, v2foam, 'b')
+plot(v2foam, 'b')
+title('Time series of V-pol Foam Cal, Oct. 5, 2015')
+axis([0 inf 3.2e6  3.6e6]); 
+%datetick('x', 15)
+
+subplot(3, 2, 2)
+%plot(h2foam_time, h2foam, 'g')
+plot(h2foam, 'g')
+%plot(h2foam_time, h2foam, 'g')
+axis([0 inf 3.4e6  3.8e6]); 
+title('Time series of H-pol Foam Cal, Oct. 5, 2015')
+%datetick('x', 15)
+
+subplot(3, 2, 3)
+h1=histogram(v2foam, 2000);
+axis([3.2e6  3.6e6  0 inf]); 
+h1.FaceColor='b';
+h1.EdgeColor='b';
+title('Histograms of V-pol Foam Cal, Oct. 5, 2015')
+
+subplot(3, 2, 4)
+h2=histogram(h2foam, 2000);
+axis([3.4e6  3.8e6  0 inf]); 
+h2.FaceColor='g';
+h2.EdgeColor='g';
+title('Histograms of H-pol Foam Cal, Oct. 5, 2015');
+
+subplot(3, 2, 5)
+[vf, vP1] = fft_spectra(v2foam, deltaT); 
+plot(vf(2:end),vP1(2:end))
+axis([0 200 0 0.5e3]); 
+title('Single-Sided Amplitude Spectrum, V-pol')
+xlabel('f (Hz)')
+ylabel('|P1(f)|')
+
+subplot(3, 2, 6)
+[hf, hP1] = fft_spectra(h2foam, deltaT);
+plot(hf(2:end),hP1(2:end))
+axis([0 200 0 0.5e3]); 
+title('Single-Sided Amplitude Spectrum, H-pol')
+xlabel('f (Hz)')
+ylabel('|P1(f)|')
+
+print('foam_ts_hist_fft.png', '-dpng');
 
 
 disp('mean(v2foam) mean(h2foam) mean(v2sky) mean(h2sky) std(v2foam) std(h2foam) std(v2sky) std(h2sky)') 
