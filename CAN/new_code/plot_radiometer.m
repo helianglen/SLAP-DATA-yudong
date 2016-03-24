@@ -51,7 +51,7 @@ power = '2';
 % Aircraft roll angle limits if removing data during a turn
 flagRoll = 1;
 rollmin = -4;
-rollmax = 2;
+rollmax = 4;
 
 % value used to remove high SM values on water
 maxSM = 1;
@@ -80,111 +80,17 @@ end
 
 % specify max and min values for color bar range
 if ~soil
-    %YDT minBin=200;
-    minBin=150;
-    maxBin=250;
+    minBin=170;
+    maxBin=300;
 else 
     minBin=0;
     maxBin=maxSM;
 end
 
-if flightdate == 2 % May 2, 2014 flight (First science flight)
-    
-    % incorporate average of in-situ Jordan Lake temp measurements
-    % (subtracting offset of temp measurement gauge which on this day was 0.3 C)
-    temp_lake = mean([ 19.3 19 19 19 18.8 18.9 19.2 19.4 19.2]) - 0.3;
-    
-    % SLAP counts when observing the lake, from data when flying over the
-    % lake. Corrected for all issues noted in SLAP L1B TB documentation.
-    % Minimum counts value when flying over the lake area was chosen as it
-    % reasonably is expected to coincide with the observation of least land contamination
-    % (which would have the effect of increaing counts values)
-    counts_lake_h = 3.3328e+06;
-    counts_lake_v = 2.9705e+06;
-    
-    % SLAP average counts when observing the foam box pre-flight
-    counts_foambox_h = 4.0755e+06;
-    counts_foambox_v = 3.8327e+06;
-    
-    % foam box temp assumed as ambient temp in Langley airport hangar during calibration
-    tb_foambox = 19+273.16;
-    
-elseif flightdate == 5 % May 5 flight (Second science flight)
-
-    temp_lake = mean([21.7 21.2 21.2 21.4 21.3 21.1]) - 0.9;
-    
-    counts_lake_h = 3.2932e+06;
-    counts_lake_v = 2.8763e+06;
-    
-    counts_foambox_h = 4.1393e+06;
-    counts_foambox_v = 3.9365e+06;
-    
-    tb_foambox = 15+273.16;
-   
-elseif flightdate == 9 % May 9 flight (Third science flight)
-
-    temp_lake = mean([23.2 22.4 21.9 22.4 21.8 22.2 21.9 22.5 22.1]);
-    
-    counts_lake_h = 3.4331e+06;
-    counts_lake_v = 2.9311e+06;
-    
-    counts_foambox_h = 4.1209e+06;
-    counts_foambox_v = 3.9129e+06;
-    
-    tb_foambox = 24+273.16;
-    
-elseif flightdate == 20 % May 20 flight (pre-science radar checkout flight)
-        % (no lake observations on non-science flights)
-    counts_foambox_h = 3.6269e+06;
-    counts_foambox_v = 3.7168e+06;
-    tb_foambox = 18+273.16;
-    
-elseif flightdate == 21 % May 21 flight (last science flight including radar)
-
-    temp_lake = 22.00588;
-    % first flight (Langley to RDU)
-%     counts_lake_h = 2933558.52019094;
-%     counts_lake_v = 2883552.71435995;
-   
-    % second_flight (RDU to Langley)
-    counts_lake_h = 2.9953e+06;
-    counts_lake_v = 2.8750e+06;
-    
-    counts_foambox_h = 4.1209e+06;
-    counts_foambox_v = 3.9129e+06;
-    
-%     counts_foambox_h = 3728429.78034618;
-%     counts_foambox_v = 3750786.90278617;
-    
-    tb_foambox = 20+273.16;
-    
-elseif flightdate == 25 % April 25th flight (pre-science checkout and water cal flight)
-
-    counts_foambox_h = 4.1119e+06;
-    counts_foambox_v = 3.8788e+06;
-    tb_foambox = 18+273.16;
-    
-    counts_lake_h = 3.1119e+06;
-    counts_lake_v = 2.8158e+06;
-end
-
-% Take in indep lake temp measurements in Celsius and convert to Tb in K.
-% Inputs are temp of the lake then 1 for lake and 0 for ocean for salinity 
-
-% lake_or_ocean = 1;
-% [temp_lake_tbh, temp_lake_tbv] = ts2tb(temp_lake, lake_or_ocean);
-
-% Average of sky calibration values from April 21st observations
-skycalh = 2875917.07861282;
-skycalv = 2518478.90154245;
-% assumed cold sky temp in K
-tb_skycal = 10;
 
 % initiate variables
 [SM_total, az_total, emiss_surf_total, clay_total, emissinit_total, temphswitch, tempvswitch, gamma_total, alt_total roll_total trk_total hdg_total tau_total emiss_soil_total emiss_h_total  Lat_total, ndvi_total, tbh_total, tbv_total, Lon_total, ndvi_total, lcclass_total, lst_total, time_total] = deal([]);
 % save SMvals SM_total emissinit_total Lat_total gamma_total tau_total emiss_surf_total emiss_soil_total emiss_h_total Lon_total lcclass_total ndvi_total  lst_total  time_total
-
-flightmonth = str2double(flightdatestr(end-11:end-10));
 
 load daq_all
 
@@ -312,10 +218,11 @@ for i = 1:length(filesRad2)
         hdg_half_scan = hdgavg(flag_half_scan);
 
         
-        % use cold sky and foam box observations to do a two-point
-        % calibration between raw counts values and Tb in K
-        tbcalh = interp1([skycalh  counts_foambox_h], [tb_skycal,  tb_foambox], h_half_scan, 'linear', 'extrap');
-        tbcalv = interp1([skycalv  counts_foambox_v], [tb_skycal,  tb_foambox], v_half_scan, 'linear', 'extrap');
+        % Two-point calibration fit form Sky Cal day data 
+        % countH = 2507448.51 + TbH * 4152.4488
+        % countV = 2306412.72 + TbV * 4376.8796
+        tbcalh = (h_half_scan - 2507448.51) / 4152.4488; 
+        tbcalv = (v_half_scan - 2306412.72) / 4376.8796; 
         
         % apply correction for galaxy and cosmic microwave background radiation
         tbcalh = tbcalh - 1;
@@ -382,8 +289,6 @@ for i = 1:length(filesRad2)
         Tb = Tb*(1- loss2) + (loss2)*( temp_dip_interp+273.16);
         Tb = Tb*(1- loss3) + (loss3)*( temp_dip_interp+273.16);
         Tbh = Tb*(1- loss4) + (loss4)*( temp_lna_interp+273.16);
-
-        Tbh = Tb; 
         
         'here 2' 
         %keyboard
@@ -410,8 +315,6 @@ for i = 1:length(filesRad2)
         Tb = Tb*(1- loss2) + (loss2)*( temp_dip_interp+273.16);
         Tb = Tb*(1- loss3) + (loss3)*( temp_dip_interp+273.16);
         Tbv = Tb*(1- loss4) + (loss4)*( temp_lna_interp+273.16);
-
-        Tbv = Tb; 
         
         'here 3' 
         %keyboard
