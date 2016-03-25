@@ -5,7 +5,7 @@ clear
 motskip = 1  % not an issue anymore
 
 %filesRad = dir('RAD*FB_m2data.mat');
-filesRad = dir('RADTELEM_20151030T182000_FB_m2data.mat');
+filesRad = dir('RADTELEM_20151030T181000_FB_m2data.mat');
 
 
 % determine flight date
@@ -111,7 +111,7 @@ for i = files_to_process
     % expected if the time was steadily increasing every 2 ms as it should be.
     
     % call to function to "repair" time tags from 2014 flight data
-    % YDT: 3/25/16: do not use. causes problems. 
+    % 3/25/16, YDT: do not use. Causes problems.
     % time = repair_time_tags(timeRad);
     time = timeRad; 
     
@@ -224,6 +224,6 @@ title('Roll angle (deg)')
 datetick('x', 15)
 
 
-print('lake-calTb-roll-ts.png', '-dpng');
+print('lake-calTb-roll-ts2.png', '-dpng');
 
 

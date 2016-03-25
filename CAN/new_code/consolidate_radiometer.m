@@ -91,6 +91,7 @@ for i = files_to_process
     h2ant = h2ant(flag_nonnan_first*4-3:flag_nonnan_final*4);
     v2ant = v2ant(flag_nonnan_first*4-3:flag_nonnan_final*4);
     
+    % keyboard
     % find GPS data for time period of current ten minute radiometer data set
     timeGeoInd = find(timeGeo >= timeRadInit & timeGeo < timeRadFinal );
     timeGeoSlice = timeGeo(timeGeoInd);
@@ -111,7 +112,9 @@ for i = files_to_process
     % expected if the time was steadily increasing every 2 ms as it should be.
     
     % call to function to "repair" time tags from 2014 flight data
-    time = repair_time_tags(timeRad);
+    % YDT: 3/26/15: it causes problems 
+    % time = repair_time_tags(timeRad);
+    time = timeRad;  
     
     % expand the timetag for the RAD file to account for the 4 PRIs at
     % timetag + 0, timetag + 0.5 ms, timetag + 1 ms, and timetag + 1.5 ms
@@ -120,6 +123,8 @@ for i = files_to_process
     
     indRad = find(timeRad >= timeMotAll(motskip) & timeRad < timeMotAll(end) );
     timeRad = timeRad(indRad);
+
+    %keyboard
     h2ant = h2ant(indRad);
     v2ant = v2ant(indRad);
     
@@ -176,7 +181,9 @@ for i = files_to_process
     azind = cell(2,1);
     
     numlines = ceil(length(az_total)/increment);
-    [azavg,latavg, lonavg, havg, vavg, altavg, trkavg, rollavg, hdgavg, timeavg] = deal(zeros(numlines,1));
+    % YDT: it left a 0 at the end 
+    %[azavg,latavg, lonavg, havg, vavg, altavg, trkavg, rollavg, hdgavg, timeavg] = deal(zeros(numlines,1));
+    [azavg,latavg, lonavg, havg, vavg, altavg, trkavg, rollavg, hdgavg, timeavg] = deal(zeros(numlines-1,1));
     for h = 1:numlines-1
         index = (increment*(h-1)+1):increment*h;
         azavg(h) = az_total(index(floor(end/2)));
