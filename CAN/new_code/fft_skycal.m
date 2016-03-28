@@ -115,19 +115,23 @@ title('Histograms of H-pol Sky Cal, Oct. 5, 2015');
 
 subplot(3, 2, 5)
 [vf, vP1] = fft_spectra(v2sky, deltaT); 
-plot(vf(2:end),vP1(2:end))
-axis([0 200 0 0.5e3]); 
-title('Single-Sided Amplitude Spectrum, V-pol')
+semilogx(vf(2:end),vP1(2:end))
+%axis([0 200 0 0.5e3]); 
+axis([0.1 1000 0 0.05]); 
+title('Noise Power Spectrum, V-pol')
+set(gca, 'XTick', [0.1 1 10 100 1000])
 xlabel('f (Hz)')
-ylabel('|P1(f)|')
+ylabel('Power')
 
 subplot(3, 2, 6)
 [hf, hP1] = fft_spectra(h2sky, deltaT);
-plot(hf(2:end),hP1(2:end))
-axis([0 200 0 0.5e3]); 
-title('Single-Sided Amplitude Spectrum, H-pol')
+semilogx(hf(2:end),hP1(2:end))
+%axis([0 200 0 0.5e3]); 
+axis([0.1 1000 0 0.05]); 
+title('Noise Power Spectrum, H-pol')
+set(gca, 'XTick', [0.1 1 10 100 1000])
 xlabel('f (Hz)')
-ylabel('|P1(f)|')
+ylabel('Power')
 
 print('sky_ts_hist_fft.png', '-dpng');
 
@@ -165,19 +169,22 @@ title('Histograms of H-pol Foam Cal, Oct. 5, 2015');
 
 subplot(3, 2, 5)
 [vf, vP1] = fft_spectra(v2foam, deltaT); 
-plot(vf(2:end),vP1(2:end))
-axis([0 200 0 0.5e3]); 
-title('Single-Sided Amplitude Spectrum, V-pol')
+semilogx(vf(2:end),vP1(2:end))
+axis([0.1 1000 0 0.05]); 
+title('Noise Power Spectrum, V-pol')
+set(gca, 'XTick', [0.1 1 10 100 1000])
 xlabel('f (Hz)')
-ylabel('|P1(f)|')
+ylabel('Power')
 
 subplot(3, 2, 6)
 [hf, hP1] = fft_spectra(h2foam, deltaT);
-plot(hf(2:end),hP1(2:end))
-axis([0 200 0 0.5e3]); 
-title('Single-Sided Amplitude Spectrum, H-pol')
+semilogx(hf(2:end),hP1(2:end))
+axis([0.1 1000 0 0.05]); 
+%axis([0 200 0 0.5e3]); 
+title('Noise Power Spectrum, H-pol')
+set(gca, 'XTick', [0.1 1 10 100 1000])
 xlabel('f (Hz)')
-ylabel('|P1(f)|')
+ylabel('Power')
 
 print('foam_ts_hist_fft.png', '-dpng');
 

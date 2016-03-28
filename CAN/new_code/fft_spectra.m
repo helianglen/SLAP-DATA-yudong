@@ -4,7 +4,7 @@
 %       deltaT: sampling interval in seconds 
 % Output: 
 %	f: frequency vector, in Hz 
-%  	P1: Single-Sided Amplitude Spectrum 
+%  	P: Power Spectrum 
 
 function [f, P1] = fft_spectra (x, deltaT) 
 
@@ -14,6 +14,8 @@ vfft = fft(x(1:vlen));
 P2 = abs(vfft/vlen);
 P1 = P2(1:vlen/2+1);
 P1(2:end-1) = 2*P1(2:end-1);
+P1(2:end-1) = (P1(2:end-1).^2)/vlen;
+
 f = Fs*(0:(vlen/2))/vlen;
 
 end 
