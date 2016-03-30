@@ -1,5 +1,7 @@
 %%
+% uses sum and mean insteald of nansum and nanmean to avoid license restrictions
 clear
+
 
 % get flight date
 flight_directory = pwd;
@@ -14,7 +16,7 @@ fore = 1;
 
 % flag to plot h or v pol data on Google Earth
 GoogleEarth  = 1;
-pol = 0; % 1 == hpol and 0 == vpol
+pol = 1; % 1 == hpol and 0 == vpol
 co_pol = 0;
 
 
@@ -23,7 +25,8 @@ co_pol = 0;
 timeRadInit = datenum('10/1/2015 00:00:00');
 timeRadFinal = datenum('11/30/2015 00:00:00');
 
-files = dir('RDRRET*00.mat');
+% RDRRETURN_20151030T181002.mat
+files = dir('RDRRETURN_*.mat');
 files_to_process = 1:length(files);
 %%
 sample_period = 500e-6; %sec
@@ -123,10 +126,15 @@ ned_vals = 238;   %m, from Albert Wu's code
 AGL = alt - ned_vals;
 
 %% roll flag and limits
-flagRoll = 0;
+flagRoll = 1;
 % Aircraft roll angle limits if removing data during a turn
 rollmin = -5;
 rollmax = 5;
+
+
+[time_total, az_total, lat_total, lon_total, hh_total, vv_total, hv_total, ...
+ vh_total, alt_total, trk_total, roll_total, hdg_total] = deal([]);
+
 
 %%
 for k = files_to_process
@@ -177,7 +185,7 @@ for k = files_to_process
     slant = AGL_interp./ cosd(elev_angle);
     
     % calculate complete az angle from true north. The azimuth offset = 0 in the SLAP measurements.
-    az_total = az_interp + hdg_interp;% + az_offset;
+    az_all = az_interp + hdg_interp;% + az_offset;
     
     % radius of earth in meters
     r_earth = 6371e3;
@@ -186,8 +194,8 @@ for k = files_to_process
     % of each observation based on azimuth angle of SLAP at time of
     % observation.
     
-    yoff = surface_radius .* cosd(az_total); % meters
-    xoff = surface_radius .* sind(az_total); % meters
+    yoff = surface_radius .* cosd(az_all); % meters
+    xoff = surface_radius .* sind(az_all); % meters
     
     % convert x and y offset into lat-lon offset, then add to current lat-lon coordinates.
     lat_interp = yoff  .* 360./(2*pi*r_earth) + latexpanded ;	%pixel absolute x location (longitude)
@@ -218,7 +226,7 @@ for k = files_to_process
     
     increment = 134;% ~= 6 deg in scan angle
     
-    numlines = floor(length(az_total)/increment);
+    numlines = floor(length(az_all)/increment);
     
     % initialize variables
     [azavg, latavg, lonavg, mean_hh, mean_vv, mean_hv, mean_vh, altavg, trkavg, rollavg, hdgavg, timeavg] = deal(zeros(numlines-1,1));
@@ -249,7 +257,7 @@ for k = files_to_process
         hdgavg(j) = hdg_interp(indmid);
         rollavg(j) = roll_interp(indmid);
         timeavg(j) = timeRad(indmid);
-        azavg(j) = az_total(indmid);
+        azavg(j) = az_all(indmid);
         
         % initialize sigma0 values for 4 pol combinations for this 6 deg avg data set (=66 data points)
         [sigma0hh, sigma0vv, sigma0hv, sigma0vh] = deal(zeros(size(data_vv,1),1));
@@ -263,8 +271,8 @@ for k = files_to_process
         area_v = pi .* footprintm^2;
         
         for i = 1:size(data_hh,1)
+
             %% This section calculates HH sigma0
-            if pol && co_pol
                 % determine indices of counts above the noise floor
                 indCountsWithinBounds = find(data_hh(i,:)> noiseFloor_h);
                 % if there is no radar return data above the noise floor, the
@@ -283,7 +291,7 @@ for k = files_to_process
                     R = sqrt ( surfaceDistance.^ 2 + altavg(j)^2);
                     
                     % interpolate counts values to determine power in mW
-                    powerReceived_h_pol = interp1(cal_hpol_counts, power_mW_h, usefulCounts);
+                    powerReceived_h_pol = interp1(cal_hpol_counts, power_mW_h, double(usefulCounts) );
                     % convert power from mW to dBm to be able to add step atten
                     powerReceived_h_pol = 10*log10(powerReceived_h_pol);
                     
@@ -294,14 +302,14 @@ for k = files_to_process
                     powerReceived_h_pol = 10.^(powerReceived_h_pol/10);
                     
                     % equation in linear (mW) space to solve for sigma
-                    sumPandR = nansum(powerReceived_h_pol.*R.^4);
+                    sumPandR = sum(powerReceived_h_pol.*R.^4);
                     sigma_hh = sumPandR / ( Pt * Gt * ( c^2 / (4*pi*f)^2 ) * 1/(4*pi) * Gr);
                     
                     % sum non-nan values of (sigma/area) to get sigma0 in mW
-                    sigma0hh(i) =  10*log10(  nansum(sigma_hh./area_h) );
+                    sigma0hh(i) =  10*log10(  sum(sigma_hh./area_h) );
                 end
+
                 %% This section calculates HV sigma0
-            elseif pol && ~co_pol
                 % determine indices of counts above the noise floor
                 indCountsWithinBounds = find(data_hv(i,:)> noiseFloor_h);
                 % if there is no radar return data above the noise floor, the
@@ -320,7 +328,7 @@ for k = files_to_process
                     R = sqrt ( surfaceDistance.^ 2 + altavg(j)^2);
                     
                     % interpolate counts values to receive pol to determine power in mW
-                    powerReceived_v_pol = interp1(cal_vpol_counts, power_mW_v, usefulCounts);
+                    powerReceived_v_pol = interp1(cal_vpol_counts, power_mW_v, double(usefulCounts) );
                     
                     % convert power from mW to dBm to be able to add step atten
                     powerReceived_v_pol = 10*log10(powerReceived_v_pol);
@@ -336,10 +344,10 @@ for k = files_to_process
                     
                     % sum non-nan values of (sigma/area) to get sigma0 in mW.
                     % must divide by receiving pol footprint area.
-                    sigma0hv(i) =  10*log10( nansum(sigma_hv./area_v));
+                    sigma0hv(i) =  10*log10( sum(sigma_hv./area_v));
                 end
+
                 %% This section calculates VV sigma0
-            elseif ~pol && co_pol
                 % determine indices of counts above the noise floor
                 indCountsWithinBounds = find(data_vv(i,:)> noiseFloor_v);
                 % if there is no radar return data above the noise floor, the
@@ -358,7 +366,7 @@ for k = files_to_process
                     R = sqrt ( surfaceDistance.^ 2 + altavg(j)^2);
                     
                     % interpolate counts values to determine power in mW\
-                    powerReceived_v_pol = interp1(cal_vpol_counts, power_mW_v, usefulCounts);
+                    powerReceived_v_pol = interp1(cal_vpol_counts, power_mW_v, double(usefulCounts) );
                     
                     % convert power from mW to dBm to be able to add step atten
                     powerReceived_v_pol = 10*log10(powerReceived_v_pol);
@@ -368,14 +376,14 @@ for k = files_to_process
                     % convert power from dBm to mW
                     powerReceived_v_pol = 10.^(powerReceived_v_pol/10);
                     % equation in linear (mW) space to solve for sigma
-                    sumPandR = nansum(powerReceived_v_pol.*R.^4);
+                    sumPandR = sum(powerReceived_v_pol.*R.^4);
                     sigma_vv = sumPandR / ( Pt * Gt * ( c^2 / (4*pi*f)^2 ) * 1/(4*pi) * Gr);
                     
                     % sum non-nan values of (sigma/area) to get sigma0 in mW
-                    sigma0vv(i) =  10*log10( nansum(sigma_vv./area_v));
+                    sigma0vv(i) =  10*log10( sum(sigma_vv./area_v));
                 end
+
                 %% This section calculates VH sigma0
-            elseif ~pol && ~co_pol
                 % determine indices of counts above the noise floor
                 indCountsWithinBounds = find(data_vh(i,:)> noiseFloor_v);
                 % if there is no radar return data above the noise floor, the
@@ -395,7 +403,7 @@ for k = files_to_process
                     
                     % interpolate counts values to receive pol to determine power in mW
                     
-                    powerReceived_h_pol = interp1(cal_hpol_counts, power_mW_h, usefulCounts);
+                    powerReceived_h_pol = interp1(cal_hpol_counts, power_mW_h, double(usefulCounts) );
                     
                     % convert power from mW to dBm to be able to add step atten
                     powerReceived_h_pol = 10*log10(powerReceived_h_pol);
@@ -406,52 +414,62 @@ for k = files_to_process
                     powerReceived_h_pol = 10.^(powerReceived_h_pol/10);
                     
                     % equation in linear (mW) space to solve for sigma
-                    sumPandR = nansum(powerReceived_h_pol.*R.^4);
+                    sumPandR = sum(powerReceived_h_pol.*R.^4);
                     sigma_vh = sumPandR / ( Pt * Gt * ( c^2 / (4*pi*f)^2 ) * 1/(4*pi) * Gr);
                     
                     % sum non-nan values of (sigma/area) to get sigma0 in mW
                     % must divide by receiving pol footprint area.
-                    sigma0vh(i) = 10*log10( nansum(sigma_vh./area_h));
+                    sigma0vh(i) = 10*log10( sum(sigma_vh./area_h));
                 end
-            end
         end
         % get six degree scan angle average of sigma0 for h and v pol
-        mean_hh(j) = nanmean(sigma0hh);
-        mean_hv(j) = nanmean(sigma0hv);
-        mean_vh(j) = nanmean(sigma0vh);
-        mean_vv(j) = nanmean(sigma0vv);
+        mean_hh(j) = mean(sigma0hh);
+        mean_hv(j) = mean(sigma0hv);
+        mean_vh(j) = mean(sigma0vh);
+        mean_vv(j) = mean(sigma0vv);
     end
-    
-    if co_pol
-        copolstr = '_co_pol';
-    else
-        copolstr = '_cross_pol';
-    end
-   
     
     % save data for future processing
-    %     save([files(k).name(1:end-4), '_6deg.mat'], 'mean_hh', 'mean_vv', 'latavg', 'lonavg', 'altavg', ...
-    %         'mean_hv', 'mean_vh','hdgavg', 'rollavg', 'trkavg', 'timeavg', 'azavg')
+    save(['6deg_', files(k).name(1:end-4), '.mat'], 'mean_hh', 'mean_vv', 'latavg', ...
+              'lonavg', 'altavg', 'mean_hv', 'mean_vh','hdgavg', 'rollavg', ...
+              'trkavg', 'timeavg', 'azavg')
     
+    time_total = [time_total; timeavg];
+    hh_total = [hh_total; mean_hh];
+    vv_total = [vv_total; mean_vv];
+    hv_total = [hv_total; mean_hv];
+    vh_total = [vh_total; mean_vh];
+    az_total = [az_total; azavg];
+    lat_total = [lat_total; latavg];
+    lon_total = [lon_total; lonavg];
+    alt_total = [alt_total; altavg];
+    trk_total = [trk_total; trkavg];
+    roll_total = [roll_total; rollavg];
+    hdg_total = [hdg_total; hdgavg];
+
+end   % file loop 
+    %-------------------------------------------------------------------
     if GoogleEarth
+
+
        % only plot on either the fore or aft half scan if flagHalf is on      
         if flagHalf
             % initialize flag_half_scan as zeros
-            flag_half_scan = zeros(length(trkavg),1);
+            flag_half_scan = zeros(length(trk_total),1);
             
-            for k = 1:length(trkavg)
+            for k = 1:length(trk_total)
                 % get 180 degrees of scan width around track angle to get front half
-                scan_lower = trkavg(k) - 90;
-                scan_upper = trkavg(k) + 90;
+                scan_lower = trk_total(k) - 90;
+                scan_upper = trk_total(k) + 90;
                 scan_upper(scan_upper>360) = scan_upper(scan_upper>360) - 360;
                 scan_lower(scan_lower<0) = scan_lower(scan_lower<0) + 360;
                 
                 % get indices of azimuth angles within the 180 degrees of the front
                 % half
-                flagf1 = azavg(k)<scan_upper;
-                flagf2 = azavg(k)>=scan_lower;
+                flagf1 = az_total(k)<scan_upper;
+                flagf2 = az_total(k)>=scan_lower;
                 
-                if trkavg(k) < 180;
+                if trk_total(k) < 180;
                     if scan_lower > 180 && (flagf1 || flagf2)
                         flag_half_scan(k) = k;
                     elseif scan_lower <= 180 && (flagf1 && flagf2)
@@ -478,45 +496,27 @@ for k = files_to_process
             
         else
             % if flagHalf is off, to plot fore and aft half scans together, get all logical ones
-            flag_half_scan = find(latavg>0);
+            flag_half_scan = find(lat_total>0);
         end
         
         % get geolocation data for fore or aft half scans using flag_half_scan
-        trk_half_scan = trkavg(flag_half_scan);
-        lon_half_scan = lonavg(flag_half_scan);
-        lat_half_scan = latavg(flag_half_scan);
-        roll_half_scan = rollavg(flag_half_scan);
-        vv_half_scan = mean_vv(flag_half_scan);
-        hh_half_scan = mean_hh(flag_half_scan);
-        hv_half_scan = mean_hv(flag_half_scan);
-        vh_half_scan = mean_vh(flag_half_scan);
-        alt_half_scan = altavg(flag_half_scan);
-        time_half_scan = timeavg(flag_half_scan);
-        az_half_scan = azavg(flag_half_scan);
-        hdg_half_scan = hdgavg(flag_half_scan);
+        trk_half_scan = trk_total(flag_half_scan);
+        lon_half_scan = lon_total(flag_half_scan);
+        lat_half_scan = lat_total(flag_half_scan);
+        roll_half_scan = roll_total(flag_half_scan);
+        vv_half_scan = vv_total(flag_half_scan);
+        hh_half_scan = hh_total(flag_half_scan);
+        hv_half_scan = hv_total(flag_half_scan);
+        vh_half_scan = vh_total(flag_half_scan);
+        alt_half_scan = alt_total(flag_half_scan);
+        time_half_scan = time_total(flag_half_scan);
+        az_half_scan = az_total(flag_half_scan);
+        hdg_half_scan = hdg_total(flag_half_scan);
         
-        minBin= - 110;
-        maxBin= -80;
-        
-        if pol
-            beam_width = beam_width_h_pol;
-            if co_pol
-                poltype = '_HH';
-                Tb = hh_half_scan;
-            else
-                poltype = '_HV';
-                Tb = hv_half_scan;
-            end
-        else
-            beam_width = beam_width_v_pol;
-            if co_pol
-                poltype = '_VV';
-                Tb = vv_half_scan;
-            else
-                poltype = '_VH';
-                Tb = vh_half_scan;
-            end
-        end
+        Tb_hh = hh_half_scan;
+        Tb_hv = hv_half_scan;
+        Tb_vv = vv_half_scan;
+        Tb_vh = vh_half_scan;
         
         Lat = lat_half_scan;
         Long = lon_half_scan;
@@ -525,126 +525,24 @@ for k = files_to_process
         % if flagRoll is set on, perform the roll filter
         if flagRoll
             indRoll = find(roll_half_scan < rollmax & roll_half_scan > rollmin);
-            Tb = Tb(indRoll);
+            Tb_hv = Tb_hv(indRoll);
+            Tb_vh = Tb_vh(indRoll);
+            Tb_vv = Tb_vv(indRoll);
+            Tb_hh = Tb_hh(indRoll);
             Lat = lat_half_scan(indRoll);
             Long = lon_half_scan(indRoll);
             Alt = alt_half_scan(indRoll);
+            Roll = roll_half_scan(indRoll); 
         end
+
+        minBin= - 100;
+        maxBin= -70;
         
-        % determine footprint size based on altitude
-        slant = Alt./ cosd(phi);
+        save_kml('radar_Fore_HV.kml', Tb_hv, Lat, Long, Alt, Roll, beam_width_h_pol, minBin, maxBin) 
+        save_kml('radar_Fore_VH.kml', Tb_vh, Lat, Long, Alt, Roll, beam_width_v_pol, minBin, maxBin) 
+
         
-        footprintm = (slant*tand(beam_width/2))./cosd(phi);
-        
-        % convert footprint radius in meters to degrees longitude
-        footprint = footprintm / (pi*6378e3) * 180;
-        
-        % generate KML file to plot on Google Earth with lat/lon and Tb/SM data
-        if fore
-            name = '_Fore';
-        else
-            name = '_Aft';
-        end
-        
-        fida=fopen(strcat(timestr, '_radar', poltype, name,  '.kml'),'w');
-        
-        line1=['<?xml version="1.0" encoding="UTF-8"?>'];
-        line2=['<kml xmlns="http://earth.google.com/kml/2.0">'];
-        line3=['<Document>'];
-        line4=[strcat('<name>',strcat(timestr, '_radar', poltype, name),'</name>')];
-        line6=['<Style id="air"><icon><href>root://icons/palette-4.png?x=160&amp;y=0&amp;w=32&amp;h=32</href></icon>'];
-        line7=['<LineStyle><color>FF0000FF</color><width>2.0</width></LineStyle></Style>'];
-        line8=['<Style id="gnd"><icon><href>root://icons/palette-4.png?x=160&amp;y=0&amp;w=32&amp;h=32</href></icon>'];
-        line9=['<LineStyle><color>FFBBFF00</color><width>2.0</width></LineStyle></Style>'];
-        line10=['<IconStyle><color>FFFFFFFF</color><scale>0.7</scale></IconStyle>'];
-        line11=['<LabelStyle><color>FFFFFFFF</color><scale>0.7</scale></LabelStyle></Style>'];
-        line_folder=['</Folder>'];
-        line_last=['</Document></kml>'];
-        
-        cls=flipud(['7F0000AA';'7F0000D4';'7F0000FF';'7F002AFF';'7F0055FF';'7F0080FF';'7F00AAFF'; ...
-            '7F00D4FF';'7F00FFFF';'7F2AFFD4';'7F54FFAA';'7F80FF80';'7FAAFF55';'7FD4FF2A'; ...
-            '7FFFFF00';'7FFFD400';'7FFFAA00';'7FFF8000';'7FFF5500';'7FFF2A00';'7FFF0000';'50000000';'50000000']);
-        
-        fprintf(fida,'%s\r%s\r%s\r%s\r%s\r%s\r%s\r%s\r', ...
-            line1,line2,line3,line4,line6,line7,line8,line9);
-        
-        %-----------------------------------
-        % bin into value ranges (21 colours and 2 outside of range)
-        %-----------------------------------
-        
-        deltaB=(maxBin-minBin)./20;
-        f0=find(Tb<minBin);
-        f1=find(Tb>=minBin & Tb<minBin+deltaB*1);
-        f2=find(Tb>=minBin+deltaB*1 & Tb<minBin+deltaB*2);
-        f3=find(Tb>=minBin+deltaB*2 & Tb<minBin+deltaB*3);
-        f4=find(Tb>=minBin+deltaB*3 & Tb<minBin+deltaB*4);
-        f5=find(Tb>=minBin+deltaB*4 & Tb<minBin+deltaB*5);
-        f6=find(Tb>=minBin+deltaB*5 & Tb<minBin+deltaB*6);
-        f7=find(Tb>=minBin+deltaB*6 & Tb<minBin+deltaB*7);
-        f8=find(Tb>=minBin+deltaB*7 & Tb<minBin+deltaB*8);
-        f9=find(Tb>=minBin+deltaB*8 & Tb<=minBin+deltaB*9);
-        f10=find(Tb>=minBin+deltaB*9 & Tb<=minBin+deltaB*10);
-        f11=find(Tb>=minBin+deltaB*10 & Tb<=minBin+deltaB*11);
-        f12=find(Tb>=minBin+deltaB*11 & Tb<=minBin+deltaB*12);
-        f13=find(Tb>=minBin+deltaB*12 & Tb<=minBin+deltaB*13);
-        f14=find(Tb>=minBin+deltaB*13 & Tb<=minBin+deltaB*14);
-        f15=find(Tb>=minBin+deltaB*14 & Tb<=minBin+deltaB*15);
-        f16=find(Tb>=minBin+deltaB*15 & Tb<=minBin+deltaB*16);
-        f17=find(Tb>=minBin+deltaB*16 & Tb<=minBin+deltaB*17);
-        f18=find(Tb>=minBin+deltaB*17 & Tb<=minBin+deltaB*18);
-        f19=find(Tb>=minBin+deltaB*18 & Tb<=minBin+deltaB*19);
-        f20=find(Tb>=minBin+deltaB*19 & Tb<=minBin+deltaB*20);
-        f21=find(Tb>maxBin);
-        
-        
-        for j=1:22
-            fprintf(fida,'%s %s %s %s %s\r','   <Placemark><name>TB Range: ',num2str((minBin+deltaB*(j-2))) ...
-                ,'-',num2str((minBin+deltaB*(j-1))),'</name>');
-            fprintf(fida,'%s\r','       <Style>');
-            fprintf(fida,'%s\r','           <LineStyle>');
-            fprintf(fida,'%s %s %s\r','               <color>',cls(j,:),'</color>');
-            fprintf(fida,'%s\r','               <width> 0 </width>');
-            fprintf(fida,'%s\r','           </LineStyle>');
-            fprintf(fida,'%s\r','           <PolyStyle>');
-            fprintf(fida,'%s %s %s\r','               <color>',cls(j,:),'</color>');
-            fprintf(fida,'%s\r','           </PolyStyle>');
-            fprintf(fida,'%s\r','       </Style>');
-            fprintf(fida,'%s\r','     <MultiGeometry>');
-            fbin = eval(genvarname(['f',num2str(j-1)]));
-            if size(fbin ,1) > 1
-                sizef = size(fbin,1);
-            else
-                sizef = size(fbin,2);
-            end
-            if ~isempty(fbin)
-                k=fbin;
-                for n=1:sizef
-                    
-                    fprintf(fida,'%s\r','       <Polygon>');
-                    fprintf(fida,'%s\r','           <altitudeMode>relativetoground</altitudeMode>');
-                    fprintf(fida,'%s\r','           <outerBoundaryIs>');
-                    fprintf(fida,'%s\r','               <LinearRing>');
-                    fprintf(fida,'%s\r','                   <coordinates>');
-                    
-                    for theta = 0:30:360
-                        fprintf(fida,'%s%6f,%6f,%0f\r','                   ',Long(k(n))+footprint(k(n))*cosd(theta),Lat(k(n))+footprint(k(n))*sind(theta), 7000);
-                    end
-                    
-                    
-                    fprintf(fida,'%s\r','                   </coordinates>');
-                    fprintf(fida,'%s\r','               </LinearRing>');
-                    fprintf(fida,'%s\r','           </outerBoundaryIs>');
-                    fprintf(fida,'%s\r','       </Polygon>');
-                end
-            end
-            
-            fprintf(fida,'%s\r','     </MultiGeometry>');
-            fprintf(fida,'%s\r','   </Placemark>');
-            
-        end
-        
-        fprintf(fida,'%s\r',line_last);
-        fclose(fida);
-        
-    end
-end
+    end  % if Google Earth 
+    %-------------------------------------------------------------------
+quit
+
