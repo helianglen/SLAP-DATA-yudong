@@ -3,6 +3,12 @@
 clear
 
 
+% what polarizations to use, for speed 
+do_hh = 1; 
+do_vv = 1; 
+do_vh = 0; 
+do_hv = 0; 
+
 % get flight date
 flight_directory = pwd;
 flight_day = str2double((flight_directory(10:11)));
@@ -15,10 +21,7 @@ flagHalf = 1;
 fore = 1;
 
 % flag to plot h or v pol data on Google Earth
-GoogleEarth  = 1;
-pol = 1; % 1 == hpol and 0 == vpol
-co_pol = 0;
-
+GoogleEarth  = 0;    %YDT now do in plot_radar.m
 
 % sometimes timestamp went to 1/1/1970
 
@@ -70,11 +73,14 @@ saturationLimit_v = cal_vpol_counts(end);
 rangeGateDistance = 300; % meters
 
 % initialize variables
-f = 1254000000; % Hz
+f = 1262500000; % Hz
 c = 299792458; % m/s
 Pt = 10^(47/10);
-Gt = 17.7^(47/10);
+%YDT Gt = 17.7^(47/10);
+Gt = 17.7; 
 Gr = Gt;
+
+radar_factor =  Pt * Gt * ( c^2 / (4*pi*f)^2 ) * 1/(4*pi) * Gr;
 
 alpha = 1.33;
 phi = 40;
@@ -138,6 +144,7 @@ rollmax = 5;
 
 %%
 for k = files_to_process
+    files(k).name
     timestr = files(k).name(end-9:end-6)
     
     % load time, radar_h, and radar_v data
@@ -270,9 +277,11 @@ for k = files_to_process
         footprintm = (slant(indmid)*tand(beam_width_v_pol/2))./cosd(elev_angle(indmid));
         area_v = pi .* footprintm^2;
         
+       % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+       if do_hh
+       %% This section calculates HH sigma0
         for i = 1:size(data_hh,1)
 
-            %% This section calculates HH sigma0
                 % determine indices of counts above the noise floor
                 indCountsWithinBounds = find(data_hh(i,:)> noiseFloor_h);
                 % if there is no radar return data above the noise floor, the
@@ -292,24 +301,34 @@ for k = files_to_process
                     
                     % interpolate counts values to determine power in mW
                     powerReceived_h_pol = interp1(cal_hpol_counts, power_mW_h, double(usefulCounts) );
-                    % convert power from mW to dBm to be able to add step atten
-                    powerReceived_h_pol = 10*log10(powerReceived_h_pol);
-                    
-                    % factor in step attenuator data
-                    powerReceived_h_pol = powerReceived_h_pol + data_step_hh(i);
-                    
-                    % convert power from dBm to mW
-                    powerReceived_h_pol = 10.^(powerReceived_h_pol/10);
+
+                    %YDT  rewrote 
+                    % % convert power from mW to dBm to be able to add step atten
+                    % powerReceived_h_pol = 10*log10(powerReceived_h_pol);
+                    % % factor in step attenuator data
+                    % powerReceived_h_pol = powerReceived_h_pol + data_step_hh(i);
+                    % % convert power from dBm to mW
+                    % powerReceived_h_pol = 10.^(powerReceived_h_pol/10);
+
+                    powerReceived_h_pol = powerReceived_h_pol* 10.^(data_step_hh(i)/10);
                     
                     % equation in linear (mW) space to solve for sigma
                     sumPandR = sum(powerReceived_h_pol.*R.^4);
-                    sigma_hh = sumPandR / ( Pt * Gt * ( c^2 / (4*pi*f)^2 ) * 1/(4*pi) * Gr);
+                    %sigma_hh = sumPandR / ( Pt * Gt * ( c^2 / (4*pi*f)^2 ) * 1/(4*pi) * Gr);
+                    %YDT rewrote for performance
+                    sigma_hh = sumPandR / radar_factor; 
                     
                     % sum non-nan values of (sigma/area) to get sigma0 in mW
                     sigma0hh(i) =  10*log10(  sum(sigma_hh./area_h) );
                 end
+           end % i
+       end
+       % ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-                %% This section calculates HV sigma0
+       % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+       if do_hv 
+           %% This section calculates HV sigma0
+           for i = 1:size(data_hv,1)
                 % determine indices of counts above the noise floor
                 indCountsWithinBounds = find(data_hv(i,:)> noiseFloor_h);
                 % if there is no radar return data above the noise floor, the
@@ -330,24 +349,35 @@ for k = files_to_process
                     % interpolate counts values to receive pol to determine power in mW
                     powerReceived_v_pol = interp1(cal_vpol_counts, power_mW_v, double(usefulCounts) );
                     
-                    % convert power from mW to dBm to be able to add step atten
-                    powerReceived_v_pol = 10*log10(powerReceived_v_pol);
-                    
-                    % factor in step attenuator data
-                    powerReceived_v_pol = powerReceived_v_pol + data_step_hv(i);
-                    
+                    %YDT rewrote for performance 
+                    % % convert power from mW to dBm to be able to add step atten
+                    % powerReceived_v_pol = 10*log10(powerReceived_v_pol);
+                    % % factor in step attenuator data
+                    % powerReceived_v_pol = powerReceived_v_pol + data_step_hv(i);
                     % convert power from dBm to mW
-                    powerReceived_v_pol = 10.^(powerReceived_v_pol/10);
+                    %  powerReceived_v_pol = 10.^(powerReceived_v_pol/10);
+
+                    powerReceived_v_pol = powerReceived_v_pol* 10.^(data_step_hv(i)/10);
+
+
                     % equation in linear (mW) space to solve for sigma
                     sumPandR = sum(powerReceived_v_pol.*R.^4);
-                    sigma_hv = sumPandR / ( Pt * Gt * ( c^2 / (4*pi*f)^2 ) * 1/(4*pi) * Gr);
+                    %YDT sigma_hv = sumPandR / ( Pt * Gt * ( c^2 / (4*pi*f)^2 ) * 1/(4*pi) * Gr);
+                    sigma_hv = sumPandR / radar_factor; 
                     
                     % sum non-nan values of (sigma/area) to get sigma0 in mW.
                     % must divide by receiving pol footprint area.
                     sigma0hv(i) =  10*log10( sum(sigma_hv./area_v));
                 end
+           end % i 
+       end
+       % ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-                %% This section calculates VV sigma0
+       % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+       if do_vv 
+           %% This section calculates VV sigma0
+           for i = 1:size(data_vv,1)
+
                 % determine indices of counts above the noise floor
                 indCountsWithinBounds = find(data_vv(i,:)> noiseFloor_v);
                 % if there is no radar return data above the noise floor, the
@@ -368,22 +398,32 @@ for k = files_to_process
                     % interpolate counts values to determine power in mW\
                     powerReceived_v_pol = interp1(cal_vpol_counts, power_mW_v, double(usefulCounts) );
                     
-                    % convert power from mW to dBm to be able to add step atten
-                    powerReceived_v_pol = 10*log10(powerReceived_v_pol);
-                    % factor in step attenuator data
-                    powerReceived_v_pol = powerReceived_v_pol + data_step_vv(i);
-                    
-                    % convert power from dBm to mW
-                    powerReceived_v_pol = 10.^(powerReceived_v_pol/10);
+                    %YDT rewrote 
+                    % % convert power from mW to dBm to be able to add step atten
+                    % powerReceived_v_pol = 10*log10(powerReceived_v_pol);
+                    % % factor in step attenuator data
+                    % powerReceived_v_pol = powerReceived_v_pol + data_step_vv(i);
+                    % % convert power from dBm to mW
+                    % powerReceived_v_pol = 10.^(powerReceived_v_pol/10);
+
+                    powerReceived_v_pol = powerReceived_v_pol* 10.^(data_step_vv(i)/10);
+
                     % equation in linear (mW) space to solve for sigma
                     sumPandR = sum(powerReceived_v_pol.*R.^4);
-                    sigma_vv = sumPandR / ( Pt * Gt * ( c^2 / (4*pi*f)^2 ) * 1/(4*pi) * Gr);
+                    %YDT sigma_vv = sumPandR / ( Pt * Gt * ( c^2 / (4*pi*f)^2 ) * 1/(4*pi) * Gr);
+                    sigma_vv = sumPandR / radar_factor; 
                     
                     % sum non-nan values of (sigma/area) to get sigma0 in mW
                     sigma0vv(i) =  10*log10( sum(sigma_vv./area_v));
                 end
+           end % i 
+       end
+       % ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-                %% This section calculates VH sigma0
+       % vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+       if do_vh 
+           for i = 1:size(data_vh,1)
+
                 % determine indices of counts above the noise floor
                 indCountsWithinBounds = find(data_vh(i,:)> noiseFloor_v);
                 % if there is no radar return data above the noise floor, the
@@ -405,23 +445,29 @@ for k = files_to_process
                     
                     powerReceived_h_pol = interp1(cal_hpol_counts, power_mW_h, double(usefulCounts) );
                     
-                    % convert power from mW to dBm to be able to add step atten
-                    powerReceived_h_pol = 10*log10(powerReceived_h_pol);
-                    % factor in step attenuator data
-                    powerReceived_h_pol = powerReceived_h_pol + data_step_vh(i);
-                    
-                    % convert power from dBm to mW
-                    powerReceived_h_pol = 10.^(powerReceived_h_pol/10);
+                    %YDT rewrote for performance  
+                    % % convert power from mW to dBm to be able to add step atten
+                    % powerReceived_h_pol = 10*log10(powerReceived_h_pol);
+                    % % factor in step attenuator data
+                    % powerReceived_h_pol = powerReceived_h_pol + data_step_vh(i);
+                    % % convert power from dBm to mW
+                    % powerReceived_h_pol = 10.^(powerReceived_h_pol/10);
+
+                    powerReceived_h_pol = powerReceived_h_pol* 10.^(data_step_vh(i)/10);
                     
                     % equation in linear (mW) space to solve for sigma
                     sumPandR = sum(powerReceived_h_pol.*R.^4);
-                    sigma_vh = sumPandR / ( Pt * Gt * ( c^2 / (4*pi*f)^2 ) * 1/(4*pi) * Gr);
+                    %sigma_vh = sumPandR / ( Pt * Gt * ( c^2 / (4*pi*f)^2 ) * 1/(4*pi) * Gr);
+                    sigma_vh = sumPandR / radar_factor; 
                     
                     % sum non-nan values of (sigma/area) to get sigma0 in mW
                     % must divide by receiving pol footprint area.
                     sigma0vh(i) = 10*log10( sum(sigma_vh./area_h));
                 end
-        end
+           end % i 
+       end
+       % ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
         % get six degree scan angle average of sigma0 for h and v pol
         mean_hh(j) = mean(sigma0hh);
         mean_hv(j) = mean(sigma0hv);
@@ -521,6 +567,7 @@ end   % file loop
         Lat = lat_half_scan;
         Long = lon_half_scan;
         Alt = alt_half_scan;
+        Roll = roll_half_scan; 
         
         % if flagRoll is set on, perform the roll filter
         if flagRoll
@@ -538,8 +585,10 @@ end   % file loop
         minBin= - 100;
         maxBin= -70;
         
-        save_kml('radar_Fore_HV.kml', Tb_hv, Lat, Long, Alt, Roll, beam_width_h_pol, minBin, maxBin) 
-        save_kml('radar_Fore_VH.kml', Tb_vh, Lat, Long, Alt, Roll, beam_width_v_pol, minBin, maxBin) 
+        %save_kml('radar_Fore_HV.kml', Tb_hv, Lat, Long, Alt, Roll, beam_width_h_pol, minBin, maxBin) 
+        %save_kml('radar_Fore_VH.kml', Tb_vh, Lat, Long, Alt, Roll, beam_width_v_pol, minBin, maxBin) 
+        %save_kml('radar_Fore_HV.kml', Tb_hv, Lat, Long, Alt, Roll, beam_width_h_pol, minBin, maxBin) 
+        save_kml('radar_Fore_HH.kml', Tb_hh, Lat, Long, Alt, Roll, beam_width_h_pol, minBin, maxBin) 
 
         
     end  % if Google Earth 
