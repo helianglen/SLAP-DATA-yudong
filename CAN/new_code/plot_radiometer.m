@@ -381,10 +381,10 @@ end
  if GoogleEarth
 
     save_kml([look_dir, '_h', '.kml'], Tbh, lat_filtered, lon_filtered, ...
-                                   alt_filtered, roll_filtered, 'h') 
+            alt_filtered, roll_filtered, 18.8, 170, 300) 
 
     save_kml([look_dir, '_v', '.kml'], Tbv, lat_filtered, lon_filtered, ...
-                                   alt_filtered, roll_filtered, 'v') 
+            alt_filtered, roll_filtered, 18.1, 170, 300) 
 
   end   % GoogleEarth
 

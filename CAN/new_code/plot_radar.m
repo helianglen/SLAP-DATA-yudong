@@ -3,7 +3,7 @@
 clear
 
 %% Initialize key options
-flagHalf = 1;
+flagHalf = 0;
 % flag to process data for fore or aft half-scan
 fore = 1;
 
@@ -137,13 +137,15 @@ end   % file loop
             Roll = roll_half_scan(indRoll); 
         end
 
-        minBin= - 100;
-        maxBin= -70;
+        minBin= - 15;
+        maxBin=  15;
         
+        'about to plot ...'
+        %keyboard
         %save_kml('radar_Fore_HV.kml', Tb_hv, Lat, Long, Alt, Roll, beam_width_h_pol, minBin, maxBin) 
         %save_kml('radar_Fore_VH.kml', Tb_vh, Lat, Long, Alt, Roll, beam_width_v_pol, minBin, maxBin) 
-        %save_kml('radar_Fore_HV.kml', Tb_hv, Lat, Long, Alt, Roll, beam_width_h_pol, minBin, maxBin) 
         save_kml('radar_Fore_HH.kml', Tb_hh, Lat, Long, Alt, Roll, beam_width_h_pol, minBin, maxBin) 
+        save_kml('radar_Fore_VV.kml', Tb_vv, Lat, Long, Alt, Roll, beam_width_v_pol, minBin, maxBin) 
 
         
     end  % if Google Earth 

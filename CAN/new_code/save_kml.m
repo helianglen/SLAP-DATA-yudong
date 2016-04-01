@@ -1,26 +1,17 @@
 
 
-  % save as kml. pol='h' or 'v' 
+  % save as kml. 
 
   function save_kml (kml_file_name, Tb, lat_filtered, lon_filtered, ...
-                                         alt_filtered, roll_filtered, pol) 
+                     alt_filtered, roll_filtered, beam_width, minBin, maxBin) 
 
-    minBin=170;
-    maxBin=300;
     % elevation angle is a function of the plane's roll ange
     elev = 40 + roll_filtered;
     % AGL = Altitude above ground level
     AGL = alt_filtered;
     % determine footprint size based on altitude
     slant = AGL./ cosd(elev);
-    % beam width for radiometer specified in SLAP documentation
-    if strcmp(pol, 'h') 
-        beam_width = 18.8;
-        poltype = '_h';
-    else
-        beam_width = 18.1;
-        poltype = '_v';
-    end
+
     %YDT footprintm = (slant*tand(beam_width/2))/cosd(elev);
     footprintm = (slant*tand(beam_width/2))./cosd(elev);
 

@@ -201,19 +201,21 @@ for k = files_to_process
     % if it has a 1 in its 4s bit, it's V transmitting.
     % the nomenclature is as follows: indstart_xy where x is the transmit pol
     % and y is the receive pol
-    %YDT bug? if pcm(1) == 0
-    if pcm_sep(1) == 0
-        indstart_hh = 1;
-        indstart_vh = 2;
-        indstart_hv = 1;
-        indstart_vv = 2;
-    else
-        indstart_hh = 2;
-        indstart_vh = 1;
-        indstart_hv = 2;
-        indstart_vv = 1;
-    end
-    
+
+    vind = pcm_sep == 1;  % Albert's algorithm
+
+    radar_hh(~vind, :) = radar_h(~vind, :);
+    radar_vv(vind, :)  = radar_v(vind, :);
+
+    radar_step_hh(~vind) =  step_h_pol( ~vind );
+    radar_step_vv(vind) = step_v_pol( vind);
+
+    radar_hv(vind, :)  = radar_h( vind, :);
+    radar_vh(~vind, :)  = radar_v( ~vind, :);
+
+    radar_step_hv(vind)  = step_h_pol( vind);
+    radar_step_vh(~vind) = step_v_pol( ~vind);
+
     % increment = 134;% ~= 6 deg in scan angle
     increment = 132;% ~= 6 deg in scan angle    YDT: make it multiple of 4 
     
@@ -227,17 +229,18 @@ for k = files_to_process
     for j = 1:numlines-1
         % get radar data points for each range bin
         ind = (increment*(j-1)+1):increment*j;
-        data_hh = radar_h( ind(indstart_hh:2:end),:);
-        data_vv = radar_v( ind(indstart_vv:2:end),:);
-        
-        data_step_hh = step_h_pol( ind(indstart_hh:2:end));
-        data_step_vv = step_v_pol( ind(indstart_vv:2:end));
-        
-        data_hv = radar_v( ind(indstart_hv:2:end),:);
-        data_vh = radar_h( ind(indstart_vh:2:end),:);
-        
-        data_step_hv = step_v_pol( ind(indstart_hv:2:end));
-        data_step_vh = step_h_pol( ind(indstart_vh:2:end));
+
+        data_hh = radar_hh(ind, :);
+        data_vv = radar_vv(ind, :);
+
+        data_step_hh = radar_step_hh( ind );
+        data_step_vv = radar_step_vv( ind );
+
+        data_hv  = radar_hv( ind, :);
+        data_vh  = radar_vh( ind, :);
+
+        data_step_hv  = radar_step_hv( ind);
+        data_step_vh  = radar_step_vh( ind);
         
         % use middle of current 6 degree data set indices for
         % geolocation and scan angle values
