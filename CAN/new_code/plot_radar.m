@@ -3,9 +3,10 @@
 clear
 
 %% Initialize key options
-flagHalf = 0;
+flagHalf = 1;
 % flag to process data for fore or aft half-scan
 fore = 1;
+half = 'Fore'; 
 
 % flag to plot h or v pol data on Google Earth
 GoogleEarth  = 1;
@@ -57,12 +58,16 @@ end   % file loop
             % initialize flag_half_scan as zeros
             flag_half_scan = zeros(length(trk_total),1);
             
+            az_total = mod(az_total, 360); 
+ 
             for k = 1:length(trk_total)
                 % get 180 degrees of scan width around track angle to get front half
                 scan_lower = trk_total(k) - 90;
                 scan_upper = trk_total(k) + 90;
-                scan_upper(scan_upper>360) = scan_upper(scan_upper>360) - 360;
-                scan_lower(scan_lower<0) = scan_lower(scan_lower<0) + 360;
+                %YDT scan_upper(scan_upper>360) = scan_upper(scan_upper>360) - 360;
+                %YDT scan_lower(scan_lower<0) = scan_lower(scan_lower<0) + 360;
+                scan_upper = mod(scan_upper, 360); 
+                scan_lower = mod(scan_lower, 360); 
                 
                 % get indices of azimuth angles within the 180 degrees of the front
                 % half
@@ -144,8 +149,8 @@ end   % file loop
         %keyboard
         %save_kml('radar_Fore_HV.kml', Tb_hv, Lat, Long, Alt, Roll, beam_width_h_pol, minBin, maxBin) 
         %save_kml('radar_Fore_VH.kml', Tb_vh, Lat, Long, Alt, Roll, beam_width_v_pol, minBin, maxBin) 
-        save_kml('radar_Fore_HH.kml', Tb_hh, Lat, Long, Alt, Roll, beam_width_h_pol, minBin, maxBin) 
-        save_kml('radar_Fore_VV.kml', Tb_vv, Lat, Long, Alt, Roll, beam_width_v_pol, minBin, maxBin) 
+        save_kml(['radar_', half, '_HH.kml'], Tb_hh, Lat, Long, Alt, Roll, beam_width_h_pol, minBin, maxBin) 
+        save_kml(['radar_', half, '_VV.kml'], Tb_vv, Lat, Long, Alt, Roll, beam_width_v_pol, minBin, maxBin) 
 
         
     end  % if Google Earth 

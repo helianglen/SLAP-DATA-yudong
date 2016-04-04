@@ -52,16 +52,18 @@ figure
 subplot(3, 1, 1)
 plot(time_total, vv_total, 'b')
 title('Time series of radar sigma0 VV (dB)')
+axis([-inf, inf, -20, 20])
 datetick('x', 15)
 
 subplot(3, 1, 2)
 plot(time_total, hh_total, 'g')
+axis([-inf, inf, -20, 20])
 title('Time series of radar sgima0 HH (dB)')
 datetick('x', 15)
 
 subplot(3, 1, 3)
 plot(time_total, roll_total)
-title('Roll angle (deg) radar HH')
+title('Roll angle (deg) radar')
 datetick('x', 15)
 
 print('radar_vv_hh_ts.png', '-dpng');
