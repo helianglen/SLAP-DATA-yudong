@@ -118,8 +118,8 @@ lake_tb=interp1(buoy_time, buoy_temp, lake_time);
   cal_date = datestr(mean(lake_time), 'yyyy-mmm-dd HH:MM:SS');
 
   %disp('----------------- after outlier removal ---------------------------------------------------------------')
-  fprintf('%s, %10.3f, %10.0f, %10.0f', ...
-          cal_date, [mean(lake_tb), mean(lake_v2), mean(lake_h2)]); 
+  fprintf('%s, %7.1f, %10.0f, %10.0f, %10.0f, %10.0f, %10.0f', ...
+      cal_date, [mean(lake_tb), mean(lake_v2), mean(lake_h2), std(lake_v2), std(lake_h2), length(lake_v2)]);
   fprintf('\n');  
 
   quit 
