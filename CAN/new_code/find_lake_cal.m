@@ -90,28 +90,31 @@ lake_tb=interp1(buoy_time, buoy_temp, lake_time);
 
   figure
   subplot(3, 1, 1)
-  plot(lake_time, lake_v2, 'b')
-  axis([x1 x2 countLow countHigh])
-  title(['Time series of V- and H-pol counts ' fdate])
+  plot(timeAll, v2antAll, 'k') 
+  hold on 
+  plot(lake_time, lake_v2, 'r', 'LineWidth', 5)
+  axis([-Inf Inf countLow countHigh])
+  title(['Time series of V-pol counts ' fdate])
   datetick('x', 15)
-  hold on
-  plot(lake_time, lake_h2, 'g')
 
   subplot(3, 1, 2)
-  plot(lake_time, lake_h2-lake_v2)
-  axis([x1 x2 0e5 7e5])
-  title('Time series of H - V counts')
+  plot(timeAll, h2antAll, 'k')
   hold on
-  plot([x1 x2], [2e5 2e5], 'g')   % 2e5 is about the difference producing TbH-TbV=0.
+  plot(lake_time, lake_h2, 'r', 'LineWidth', 5)
+  axis([-Inf Inf countLow countHigh])
+  title(['Time series of H-pol counts ' fdate])
   datetick('x', 15)
 
   subplot(3, 1, 3)
-  plot(lake_time, lake_roll)
-  axis([x1 x2 -50 50])
+  plot(timeAll, rollAll, 'k') 
+  hold on
+  plot(lake_time, lake_roll, 'r', 'LineWidth', 5)
+  axis([-Inf Inf -50 50])
   title('Time series of roll angels (deg)')
   datetick('x', 15)
 
   print(['lake_cal_counts_ts-' fdate], '-dpng');
+
 
   %print the cal data 
 
@@ -122,4 +125,4 @@ lake_tb=interp1(buoy_time, buoy_temp, lake_time);
       cal_date, [mean(lake_tb), mean(lake_v2), mean(lake_h2), std(lake_v2), std(lake_h2), length(lake_v2)]);
   fprintf('\n');  
 
-  quit 
+  %quit 
