@@ -4,8 +4,10 @@ clear
 %sometimes there is block of timetags that are bad
 motskip = 1  % not an issue anymore
 
-filesRad = dir('RAD*FB_m2data.mat');
+%lower limit: sometimes the time range went berserk
+time0 = datenum('2015-Oct-1 00:00:00', 'yyyy-mmm-dd HH:MM:SS')
 
+filesRad = dir('RAD*FB_m2data.mat');
 
 % determine flight date
 flight_directory = pwd;
@@ -76,7 +78,8 @@ for i = files_to_process
 %        break
 %    end
     
-    timeRad = time;
+    tgood  = find(time > time0);
+    timeRad = time(tgood);
     
     % find initial Rad timetag in sec
     flag_nonnan_first = find(~isnan(timeRad),1);
@@ -142,6 +145,8 @@ for i = files_to_process
     
     % now interpolate OxTS components using timeGeoSlice as the original
     % index and timeRad as the interpolating index
+ %---- if
+ if (numel(AGL) > 0 ) 
     alt_interp = interp1(timeGeoSlice, AGL, timeRad);
     pitch_interp = interp1(timeGeoSlice, pitch, timeRad);
     roll_interp = interp1(timeGeoSlice, roll, timeRad);
@@ -199,6 +204,8 @@ for i = files_to_process
     end
     
     save([filesRad(i).name(1:end-11), name, '.mat'], 'hdgavg', 'azavg', 'trkavg',  'rollavg', 'lonavg', 'latavg', 'altavg', 'havg', 'vavg', 'timeavg')
+ end 
+ %---- end if
 end
 
 quit

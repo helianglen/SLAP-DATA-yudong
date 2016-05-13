@@ -6,7 +6,7 @@
 clear
 
 % min time-span of cal data to use -- to get rid of airplane quick turn-arounds  
-cal_dt = 30;   % secs 
+cal_dt = 40;   % secs 
 
 %sample interval: 1/15 sec
 dt = 1/15.0;  
