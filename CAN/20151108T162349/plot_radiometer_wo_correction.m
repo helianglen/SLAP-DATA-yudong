@@ -42,6 +42,9 @@ rollmax = 4;
 % initiate variables
 [SM_total, az_total, emiss_surf_total, clay_total, emissinit_total, temphswitch, tempvswitch, gamma_total, alt_total roll_total trk_total hdg_total tau_total emiss_soil_total emiss_h_total  Lat_total, ndvi_total, tbh_total, tbv_total, Lon_total, ndvi_total, lcclass_total, lst_total, time_total] = deal([]);
 [v_count_total, h_count_total] = deal([]); 
+
+[temp_dip_v, temp_lna_v, temp_ant_v, temp_switch_v ] = deal([]); 
+[temp_dip_h, temp_lna_h, temp_ant_h, temp_switch_h ] = deal([]); 
 % save SMvals SM_total emissinit_total Lat_total gamma_total tau_total emiss_surf_total emiss_soil_total emiss_h_total Lon_total lcclass_total ndvi_total  lst_total  time_total
 
 load daq_all
@@ -268,6 +271,11 @@ for i = 1:length(filesRad2)
         temp_lna_interp    = interp1(new_timeDaq,new_TempLNAH, time_half_scan);
         temp_ant_interp    = interp1(new_timeDaq,new_TempAntennaH, time_half_scan);
         temp_switch_interp = interp1(new_timeDaq,new_IMA_H_SWITCH, time_half_scan);
+
+        temp_dip_h = [temp_dip_h; temp_dip_interp]; 
+        temp_lna_h = [temp_lna_h; temp_lna_interp]; 
+        temp_ant_h = [temp_ant_h; temp_ant_interp]; 
+        temp_switch_h = [temp_switch_h; temp_switch_interp]; 
         
 %YDT temp off due to license limit
 %        temp_dip_interp(isnan(temp_dip_interp)) = nanmean(temp_dip_interp);
@@ -292,6 +300,11 @@ for i = 1:length(filesRad2)
         temp_lna_interp    = interp1(new_timeDaq,new_TempLNAV, time_half_scan);
         temp_ant_interp    = interp1(new_timeDaq,new_TempAntennaV, time_half_scan);
         temp_switch_interp = interp1(new_timeDaq,new_IMA_V_SWITCH, time_half_scan);
+
+        temp_dip_v = [temp_dip_v; temp_dip_interp]; 
+        temp_lna_v = [temp_lna_v; temp_lna_interp]; 
+        temp_ant_v = [temp_ant_v; temp_ant_interp]; 
+        temp_switch_v = [temp_switch_v; temp_switch_interp]; 
         
         'here 2.5' 
         %keyboard
@@ -407,12 +420,121 @@ end
  if GoogleEarth
 
     save_kml([look_dir, '_h_wo_correction', '.kml'], Tbh, lat_filtered, lon_filtered, ...
-            alt_filtered, roll_filtered, 18.8, 100, 260) 
+            alt_filtered, roll_filtered, 18.8, 160, 300) 
 
     save_kml([look_dir, '_v_wo_correction', '.kml'], Tbv, lat_filtered, lon_filtered, ...
-            alt_filtered, roll_filtered, 18.1, 100, 260) 
+            alt_filtered, roll_filtered, 18.1, 160, 300) 
 
   end   % GoogleEarth
+
+%% plot for internal temperatures =============================
+figure
+subplot(3, 1, 1)
+plot(time_total, temp_dip_v+273.15) 
+hold on
+plot(time_total, temp_lna_v+273.15) 
+plot(time_total, temp_ant_v+273.15) 
+plot(time_total, temp_switch_v+273.15) 
+%h-pol
+plot(time_total, temp_dip_h+273.15, '--') 
+hold on
+plot(time_total, temp_lna_h+273.15, '--') 
+plot(time_total, temp_ant_h+273.15, '--') 
+plot(time_total, temp_switch_h+273.15, '--') 
+datetick('x', 15)
+%plot(time_total, Tbv) 
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 21:55:00') 200 400])
+title('Internal temperatures (K): dip, lna, ant, and switch, V- and H-pol')
+
+subplot(3, 1, 2)
+plot(time_total, temp_dip_v+273.15)
+hold on
+plot(time_total, temp_lna_v+273.15)
+plot(time_total, temp_ant_v+273.15)
+plot(time_total, temp_switch_v+273.15)
+%h-pol
+plot(time_total, temp_dip_h+273.15, '--')
+hold on
+plot(time_total, temp_lna_h+273.15, '--')
+plot(time_total, temp_ant_h+273.15, '--')
+plot(time_total, temp_switch_h+273.15, '--')
+datetick('x', 15)
+%plot(time_total, Tbv)
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 19:20:00') 200 400])
+title('Internal temperatures (K): dip, lna, ant, and switch, V- and H-pol')
+
+subplot(3, 1, 3)
+plot(time_total, temp_dip_v+273.15)
+hold on
+plot(time_total, temp_lna_v+273.15)
+plot(time_total, temp_ant_v+273.15)
+plot(time_total, temp_switch_v+273.15)
+%h-pol
+plot(time_total, temp_dip_h+273.15, '--')
+hold on
+plot(time_total, temp_lna_h+273.15, '--')
+plot(time_total, temp_ant_h+273.15, '--')
+plot(time_total, temp_switch_h+273.15, '--')
+%plot(time_total, Tbv)
+datetick('x', 15)
+axis([datenum('2015-11-08 21:00:00') datenum('2015-11-08 21:55:00') 200 400])
+title('Internal temperatures (K): dip, lna, ant, and switch, V- and H-pol')
+print('internal-temps.png', '-dpng');
+
+%% plot for counts =============================
+figure
+subplot(3, 1, 1)
+plot(time_total, v_count_total, 'b')
+hold on
+plot(time_total, h_count_total, 'g')
+datetick('x', 15)
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 21:55:00') -Inf Inf])
+title('Counts, V (blue) and H (green)') 
+
+subplot(3, 1, 2)
+plot(time_total, v_count_total, 'b')
+hold on
+plot(time_total, h_count_total, 'g')
+datetick('x', 15)
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 19:20:00') -Inf Inf])
+title('Counts, V (blue) and H (green)') 
+
+subplot(3, 1, 3)
+plot(time_total, v_count_total, 'b')
+hold on
+plot(time_total, h_count_total, 'g')
+datetick('x', 15)
+axis([datenum('2015-11-08 21:00:00') datenum('2015-11-08 21:55:00') -Inf Inf])
+title('Counts, V (blue) and H (green)') 
+print('counts-flight.png', '-dpng');
+
+%% plot for Tbs =============================
+figure
+subplot(3, 1, 1)
+plot(time_total, Tbv, 'b')
+hold on
+plot(time_total, Tbh, 'g')
+datetick('x', 15)
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 21:55:00') 0 400])
+title('Tb V (blue) H (green)')
+
+subplot(3, 1, 2)
+plot(time_total, Tbv, 'b')
+hold on
+plot(time_total, Tbh, 'g')
+datetick('x', 15)
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 19:20:00') 0 400])
+title('Tb V (blue) H (green)')
+
+subplot(3, 1, 3)
+plot(time_total, Tbv, 'b')
+hold on
+plot(time_total, Tbh, 'g')
+datetick('x', 15)
+axis([datenum('2015-11-08 21:00:00') datenum('2015-11-08 21:55:00') 0 400])
+title('Tb V (blue) H (green)')
+print('Tbs-flight.png', '-dpng');
+
 
 figure
 subplot(3, 1, 1)
@@ -438,5 +560,4 @@ title('Roll angle (deg)')
 datetick('x', 15)
 
 print('calTb-roll-ts-wo_correction.png', '-dpng');
-
 
