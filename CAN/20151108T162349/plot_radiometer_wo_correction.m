@@ -392,7 +392,9 @@ if  data_accum
     indnan = isnan(Lat_total);
     alldata = alldata(~indnan,:);
     % save as csv file
-    csvwrite(['May ', flightdatestr(10:11), ' AM Observations.csv'] , alldata)
+%    csvwrite(['May ', flightdatestr(10:11), ' AM Observations.csv'] , alldata)
+    csvwrite('radiometer.csv', alldata)
+
 end
 
 
@@ -427,59 +429,102 @@ end
 
   end   % GoogleEarth
 
+
 %% plot for internal temperatures =============================
 figure
 subplot(3, 1, 1)
-plot(time_total, temp_dip_v+273.15) 
+plot(time_total, temp_dip_v) 
 hold on
-plot(time_total, temp_lna_v+273.15) 
-plot(time_total, temp_ant_v+273.15) 
-plot(time_total, temp_switch_v+273.15) 
+plot(time_total, temp_switch_v) 
+hold on
 %h-pol
-plot(time_total, temp_dip_h+273.15, '--') 
+plot(time_total, temp_dip_h, '--') 
 hold on
-plot(time_total, temp_lna_h+273.15, '--') 
-plot(time_total, temp_ant_h+273.15, '--') 
-plot(time_total, temp_switch_h+273.15, '--') 
+plot(time_total, temp_lna_h, '--')
+hold on
+plot(time_total, temp_switch_h, '--') 
 datetick('x', 15)
 %plot(time_total, Tbv) 
-axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 21:55:00') 200 400])
-title('Internal temperatures (K): dip, lna, ant, and switch, V- and H-pol')
+legend('dip-v', 'switch-v', 'dip-h', 'lna-h', 'switch-h') 
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 21:55:00') 32 37])
+title('Internal temperatures (C)') 
 
 subplot(3, 1, 2)
-plot(time_total, temp_dip_v+273.15)
+plot(time_total, temp_dip_v)
 hold on
-plot(time_total, temp_lna_v+273.15)
-plot(time_total, temp_ant_v+273.15)
-plot(time_total, temp_switch_v+273.15)
+plot(time_total, temp_switch_v)
+hold on
 %h-pol
-plot(time_total, temp_dip_h+273.15, '--')
+plot(time_total, temp_dip_h, '--')
 hold on
-plot(time_total, temp_lna_h+273.15, '--')
-plot(time_total, temp_ant_h+273.15, '--')
-plot(time_total, temp_switch_h+273.15, '--')
+plot(time_total, temp_lna_h, '--')
+hold on
+plot(time_total, temp_switch_h, '--')
+legend('dip-v', 'switch-v', 'dip-h', 'lna-h', 'switch-h') 
 datetick('x', 15)
 %plot(time_total, Tbv)
-axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 19:20:00') 200 400])
-title('Internal temperatures (K): dip, lna, ant, and switch, V- and H-pol')
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 19:20:00') 32 37])
+title('Internal temperatures (C)') 
 
 subplot(3, 1, 3)
-plot(time_total, temp_dip_v+273.15)
+plot(time_total, temp_dip_v)
 hold on
-plot(time_total, temp_lna_v+273.15)
-plot(time_total, temp_ant_v+273.15)
-plot(time_total, temp_switch_v+273.15)
+plot(time_total, temp_switch_v)
+hold on
 %h-pol
-plot(time_total, temp_dip_h+273.15, '--')
+plot(time_total, temp_dip_h, '--')
 hold on
-plot(time_total, temp_lna_h+273.15, '--')
-plot(time_total, temp_ant_h+273.15, '--')
-plot(time_total, temp_switch_h+273.15, '--')
+plot(time_total, temp_lna_h, '--') 
+hold on
+plot(time_total, temp_switch_h, '--')
+legend('dip-v', 'switch-v', 'dip-h', 'lna-h', 'switch-h') 
 %plot(time_total, Tbv)
 datetick('x', 15)
-axis([datenum('2015-11-08 21:00:00') datenum('2015-11-08 21:55:00') 200 400])
-title('Internal temperatures (K): dip, lna, ant, and switch, V- and H-pol')
-print('internal-temps.png', '-dpng');
+axis([datenum('2015-11-08 21:00:00') datenum('2015-11-08 21:55:00') 32 37])
+title('Internal temperatures (C)') 
+print('internal-group1-temps.png', '-dpng');
+
+%% plot for internal temperatures =============================
+figure
+subplot(3, 1, 1)
+plot(time_total, temp_lna_v) 
+hold on
+plot(time_total, temp_ant_v) 
+hold on
+%h-pol
+plot(time_total, temp_ant_h, '--') 
+datetick('x', 15)
+legend('lna-v', 'ant-v', 'ant-h') 
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 21:55:00') 15 25])
+title('Internal temperatures (C)') 
+
+subplot(3, 1, 2)
+plot(time_total, temp_lna_v)
+hold on
+plot(time_total, temp_ant_v)
+hold on
+%h-pol
+plot(time_total, temp_ant_h, '--')
+legend('lna-v', 'ant-v', 'ant-h') 
+datetick('x', 15)
+%plot(time_total, Tbv)
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 19:20:00') 15 25])
+title('Internal temperatures (C)') 
+
+subplot(3, 1, 3)
+plot(time_total, temp_lna_v)
+hold on
+plot(time_total, temp_ant_v)
+hold on
+%h-pol
+plot(time_total, temp_ant_h, '--')
+legend('lna-v', 'ant-v', 'ant-h') 
+%plot(time_total, Tbv)
+datetick('x', 15)
+axis([datenum('2015-11-08 21:00:00') datenum('2015-11-08 21:55:00') 15 25])
+title('Internal temperatures (C)') 
+print('internal-group2-temps.png', '-dpng');
+
 
 %% plot for counts =============================
 figure
@@ -488,7 +533,7 @@ plot(time_total, v_count_total, 'b')
 hold on
 plot(time_total, h_count_total, 'g')
 datetick('x', 15)
-axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 21:55:00') -Inf Inf])
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 21:55:00') 2.5e6 3.6e6])
 title('Counts, V (blue) and H (green)') 
 
 subplot(3, 1, 2)
@@ -496,7 +541,7 @@ plot(time_total, v_count_total, 'b')
 hold on
 plot(time_total, h_count_total, 'g')
 datetick('x', 15)
-axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 19:20:00') -Inf Inf])
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 19:20:00') 2.5e6 3.6e6])
 title('Counts, V (blue) and H (green)') 
 
 subplot(3, 1, 3)
@@ -504,7 +549,7 @@ plot(time_total, v_count_total, 'b')
 hold on
 plot(time_total, h_count_total, 'g')
 datetick('x', 15)
-axis([datenum('2015-11-08 21:00:00') datenum('2015-11-08 21:55:00') -Inf Inf])
+axis([datenum('2015-11-08 21:00:00') datenum('2015-11-08 21:55:00') 2.5e6 3.6e6])
 title('Counts, V (blue) and H (green)') 
 print('counts-flight.png', '-dpng');
 
@@ -515,7 +560,7 @@ plot(time_total, Tbv, 'b')
 hold on
 plot(time_total, Tbh, 'g')
 datetick('x', 15)
-axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 21:55:00') 0 400])
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 21:55:00') 150 270])
 title('Tb V (blue) H (green)')
 
 subplot(3, 1, 2)
@@ -523,7 +568,7 @@ plot(time_total, Tbv, 'b')
 hold on
 plot(time_total, Tbh, 'g')
 datetick('x', 15)
-axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 19:20:00') 0 400])
+axis([datenum('2015-11-08 18:20:00') datenum('2015-11-08 19:20:00') 150 270])
 title('Tb V (blue) H (green)')
 
 subplot(3, 1, 3)
@@ -531,7 +576,7 @@ plot(time_total, Tbv, 'b')
 hold on
 plot(time_total, Tbh, 'g')
 datetick('x', 15)
-axis([datenum('2015-11-08 21:00:00') datenum('2015-11-08 21:55:00') 0 400])
+axis([datenum('2015-11-08 21:00:00') datenum('2015-11-08 21:55:00') 150 270])
 title('Tb V (blue) H (green)')
 print('Tbs-flight.png', '-dpng');
 
