@@ -482,6 +482,7 @@ legend('dip-v', 'switch-v', 'dip-h', 'lna-h', 'switch-h')
 datetick('x', 15)
 axis([datenum('2015-11-08 21:00:00') datenum('2015-11-08 21:55:00') 32 37])
 title('Internal temperatures (C)') 
+set(gcf,'PaperUnits','inches','PaperPosition',[0 0 8.5 11])
 print('internal-group1-temps.png', '-dpng');
 
 %% plot for internal temperatures =============================
@@ -523,6 +524,7 @@ legend('lna-v', 'ant-v', 'ant-h')
 datetick('x', 15)
 axis([datenum('2015-11-08 21:00:00') datenum('2015-11-08 21:55:00') 15 25])
 title('Internal temperatures (C)') 
+set(gcf,'PaperUnits','inches','PaperPosition',[0 0 8.5 11])
 print('internal-group2-temps.png', '-dpng');
 
 
