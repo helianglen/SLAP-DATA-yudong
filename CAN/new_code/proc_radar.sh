@@ -6,7 +6,7 @@
 # is located in the same directory. 
 # Example
 # cd 20151106T174214
-# ../new_code/proc.sh 
+# ../new_code/proc_radar.sh 
 
  n_fb=`ls RDRRETUR*.mat |wc -l`
  if [ $n_fb -eq 0 ]; then 
